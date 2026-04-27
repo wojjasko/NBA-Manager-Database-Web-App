@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>NBA Zone - Stats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.0.0/css/flag-icons.min.css"/>
+
+    <style>
+        body { background-color: #f8f9fa; font-size: 0.9rem; }
+        .card-header { background: #1d428a; color: white; border-radius: 10px 10px 0 0 !important; }
+
+        .table-container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .col-compact { width: 1%; white-space: nowrap; }
+        .pos-cell { white-space: nowrap; min-width: 70px; }
+
+        .col-salary { width: 110px; min-width: 110px; }
+        .separator { border-left: 2px solid #dee2e6 !important; }
+
+        .salary-cell { font-family: 'Segoe UI', sans-serif; }
+
+        .team-logo { width: 22px; height: 22px; object-fit: contain; margin-right: 8px; }
+        .flag-icon { border-radius: 2px; }
+
+        .table-hover tbody tr:hover { background-color: rgba(29, 66, 138, 0.05) !important; }
+    </style>
+</head>
+<body class="container-fluid py-4">
+
+<div class="table-container">
+    <div class="card shadow border-0">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <h2 class="mb-0">🏀 NBA 2K26 - BAZA GRACZY 🏀</h2>
+            <a th:href="@{/teams}" class="btn btn-primary">PRZEGLĄD DRUŻYN</a>
+            <a th:href="@{/add-player}" class="btn btn-light btn-sm fw-bold">+ DODAJ ZAWODNIKA</a>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="nbaTable" class="table table-hover align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th class="text-center pos-cell">POS</th>
+                        <th>PLAYER</th>
+                        <th class="text-center col-compact">AGE</th>
+                        <th class="text-center col-compact">NAT</th>
+                        <th>TEAM</th>
+                        <th class="text-center col-compact">OVR</th>
+                        <th class="text-end col-salary separator">25/26 ($)</th>
+                        <th class="text-end col-salary">26/27 ($)</th>
+                        <th class="text-end col-salary">27/28 ($)</th>
+                        <th class="text-end col-salary">28/29 ($)</th>
+                        <th class="text-end col-salary">29/30 ($)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="player : ${nbaPlayers}">
+                        <td class="text-center fw-bold text-muted pos-cell">
+                            <span th:text="${player.position + (player.secondaryPosition != null and player.secondaryPosition != '' ? ' ' + player.secondaryPosition : '')}"></span>
+                        </td>
+
+                        <td class="fw-bold text-nowrap">
+                            <span th:text="${player.name + ' ' + player.surname}"></span>
+                        </td>
+
+                        <td class="text-center" th:text="${player.age}"></td>
+
+                        <td class="text-center">
+                            <span th:if="${player.nationality}" th:class="'fi fi-' + ${player.nationality.toLowerCase()} + ' flag-icon'"></span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex align-items-center text-nowrap">
+                                <img th:src="${player.team != null ? player.team.logoPath : '/images/logos/nba.png'}"
+                                     class="team-logo"
+                                     onerror="this.src='/images/logos/nba.png'; this.onerror=null;">
+
+                                <span th:text="${player.team != null ? player.team.name : 'Free Agent'}"></span>
+                            </div>
+                        </td>
+
+                        <td class="text-center fw-bold" th:text="${player.rating}"></td>
+
+                        <td class="fw-bold text-end salary-cell separator">
+                            <span style="display:none" th:text="${player.contract2526 != null ? #numbers.formatInteger(player.contract2526, 12) : '000000000000'}"></span>
+                            <span th:style="${player.option2526 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                    (player.option2526 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' :
+                    (player.option2526 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #FF8C00;' : 'color: black;'))}"
+                                  th:text="${player.contract2526 != null and player.contract2526 > 0 ? #numbers.formatDecimal(player.contract2526, 0, 'WHITESPACE', 0, 'POINT') : ''}"></span>
+                        </td>
+
+                        <td class="fw-bold text-end salary-cell">
+                            <span style="display:none" th:text="${player.contract2627 != null ? #numbers.formatInteger(player.contract2627, 12) : '000000000000'}"></span>
+                            <span th:style="${player.option2627 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                    (player.option2627 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' :
+                    (player.option2627 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #FF8C00;' : 'color: black;'))}"
+                                  th:text="${player.contract2627 != null and player.contract2627 > 0 ? #numbers.formatDecimal(player.contract2627, 0, 'WHITESPACE', 0, 'POINT') : ''}"></span>
+                        </td>
+
+                        <td class="fw-bold text-end salary-cell">
+                            <span style="display:none" th:text="${player.contract2728 != null ? #numbers.formatInteger(player.contract2728, 12) : '000000000000'}"></span>
+                            <span th:style="${player.option2728 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                    (player.option2728 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' :
+                    (player.option2728 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #FF8C00;' : 'color: black;'))}"
+                                  th:text="${player.contract2728 != null and player.contract2728 > 0 ? #numbers.formatDecimal(player.contract2728, 0, 'WHITESPACE', 0, 'POINT') : ''}"></span>
+                        </td>
+
+                        <td class="fw-bold text-end salary-cell">
+                            <span style="display:none" th:text="${player.contract2829 != null ? #numbers.formatInteger(player.contract2829, 12) : '000000000000'}"></span>
+                            <span th:style="${player.option2829 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                    (player.option2829 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' :
+                    (player.option2829 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #FF8C00;' : 'color: black;'))}"
+                                  th:text="${player.contract2829 != null and player.contract2829 > 0 ? #numbers.formatDecimal(player.contract2829, 0, 'WHITESPACE', 0, 'POINT') : ''}"></span>
+                        </td>
+
+                        <td class="fw-bold text-end salary-cell">
+                            <span style="display:none" th:text="${player.contract2930 != null ? #numbers.formatInteger(player.contract2930, 12) : '000000000000'}"></span>
+                            <span th:style="${player.option2930 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                    (player.option2930 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' :
+                    (player.option2930 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #FF8C00;' : 'color: black;'))}"
+                                  th:text="${player.contract2930 != null and player.contract2930 > 0 ? #numbers.formatDecimal(player.contract2930, 0, 'WHITESPACE', 0, 'POINT') : ''}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script th:inline="none">
+    $(document).ready(function() {
+        $('#nbaTable').DataTable({
+            "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/pl.json" },
+            "pageLength": 25,
+            "order": [[5, "desc"]],
+            "columnDefs": [
+                { "orderable": false, "targets": [3, 4] },
+                { "type": "string", "targets": [6, 7, 8, 9, 10] }
+            ]
+        });
+    });
+</script>
+</body>
+</html>

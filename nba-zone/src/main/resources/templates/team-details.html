@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${team.name} + ' - Details'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            /* Styl dla dużego logo w tle */
+            .background-logo {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50%;
+                opacity: 0.15;
+                z-index: -1;
+                pointer-events: none;
+                filter: grayscale(20%);
+            }
+
+
+            .roster-table {
+                background: rgba(255, 255, 255, 0.9) !important;
+            }
+        }
+        @media (min-width: 1400px) { .container { max-width: 1500px; } }
+
+        .team-header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid #1d428a; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #666; }
+
+        /* Tła wierszy */
+        .bg-new-player td { background-color: #e3f2fd !important; }
+        .bg-rookie td { background-color: #e8f5e9 !important; }
+
+        .roster-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .table th { font-size: 0.75rem; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+
+        /* Pozycje */
+        .pos-main { font-weight: 800; color: #1d428a; font-size: 1.1rem; }
+
+        /* Style finansowe i pionowe kreski */
+        .salary-cell { font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 0.95rem; }
+        .salary-col { border-left: 1px solid #dee2e6 !important; }
+
+        /* OVR Rangi */
+        .ovr-badge {
+            width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; border-radius: 8px; color: white; font-size: 0.9rem;
+        }
+        .ovr-90 { background: linear-gradient(135deg, #f1c40f, #f39c12); color: black; box-shadow: 0 0 8px rgba(241, 196, 15, 0.4); }
+        .ovr-80 { background: #27ae60; }
+        .ovr-70 { background: #2980b9; }
+        .ovr-60 { background: #7f8c8d; }
+
+        /* Różnica ratingu */
+        .diff-tag { font-size: 0.75rem; font-weight: bold; margin-left: 6px; }
+        .diff-plus { color: #28a745; }
+        .diff-minus { color: #dc3545; }
+        .diff-zero { color: #adb5bd; }
+
+        /* Progi finansowe */
+        .summary-card { padding: 25px; }
+        .summary-table th { background-color: #f1f3f5 !important; color: #333; }
+        .diff-pos { color: #198754; font-weight: bold; }
+        .diff-neg { color: #dc3545; font-weight: bold; }
+
+        /* Stopka */
+        .footer-sum {
+            border-top: 20px solid #f8f9fa !important;
+            background: #212529 !important;
+            color: white;
+        }
+        .footer-sum td { padding: 15px !important; }
+        .position-divider { border-top: 3px solid #444 !important; }
+    </style>
+</head>
+<body class="container py-5" >
+<img th:src="${team.logoPath}" class="background-logo" alt="Team Background Logo">
+
+<div class="team-header d-flex align-items-center">
+    <img th:src="${team.logoPath}" class="team-logo-large" style="max-height: 120px; margin-right: 30px;">
+    <div class="flex-grow-1">
+        <h1 class="display-4 fw-bold" th:text="${team.name}">NAZWA DRUŻYNY</h1>
+        <p class="text-muted mb-0">
+            <span th:text="${team.conference}"></span> Conference |
+            <span th:text="${team.division}"></span> Division |
+            Coach: <strong th:text="${team.headCoach}"></strong> (Since <span th:text="${team.coachSince}"></span>)
+        </p>
+        <div class="mt-2">
+            <span class="badge bg-primary" th:text="'Titles: ' + ${team.nbaTitles}"></span>
+            <span class="badge bg-secondary" th:text="'Playoffs: ' + ${team.playoffAppearances}"></span>
+            <span class="badge bg-info" th:text="'Market: ' + ${team.marketSize}"></span>
+        </div>
+    </div>
+    <div class="text-end">
+        <a th:href="@{/teams}" class="btn btn-outline-dark">POWRÓT DO LISTY DRUŻYN</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <span class="stat-label">Total Salary (25/26)</span>
+            <span class="stat-value" th:text="'$' + ${#numbers.formatDecimal(team.totalSalary, 0, 'WHITESPACE', 0, 'POINT')}"></span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" th:style="${team.luxuryTax > 0 ? 'border-bottom-color: #dc3545' : 'border-bottom-color: #198754'}">
+            <span class="stat-label">Luxury Tax Est.</span>
+            <span class="stat-value" th:classappend="${team.luxuryTax > 0 ? 'salary-warning' : ''}"
+                  th:text="${team.luxuryTax > 0 ? '$' + #numbers.formatDecimal(team.luxuryTax, 0, 'WHITESPACE', 0, 'POINT') : 'NONE'}"></span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <span class="stat-label">Team OVR / Players</span>
+            <span class="stat-value">
+                <span th:text="${team.teamOvr}"></span> / <span th:text="${team.playerCount}"></span>
+            </span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <span class="stat-label">Average Age</span>
+            <span class="stat-value" th:text="${#numbers.formatDecimal(team.averageAge, 1, 1)}"></span>
+        </div>
+    </div>
+</div>
+
+<div class="roster-table">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+        <tr>
+            <th>Pos</th><th>Player</th><th>Age</th><th class="text-center">Nat</th><th>OVR</th>
+            <th>25/26 ($)</th><th>26/27 ($)</th><th>27/28 ($)</th><th>28/29 ($)</th><th>29/30 ($)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p, iterStat : ${players}"
+            th:classappend="${(p.rookie ? 'bg-rookie' : (p.newPlayer ? 'bg-new-player' : '')) + (iterStat.index > 0 && players[iterStat.index-1].position != p.position ? ' position-divider' : '')}">
+
+            <td><span class="pos-main" th:text="${p.position}"></span> <small class="text-muted" th:text="${p.secondaryPosition}"></small></td>
+            <td class="fw-bold" th:text="${p.name + ' ' + p.surname}"></td>
+            <td th:text="${p.getAge()}"></td>
+            <td class="text-center"><span th:class="'fi fi-' + ${p.nationality.toLowerCase()}"></span></td>
+
+            <td>
+                <div class="d-flex align-items-center"
+                     th:with="p_rating=${p.rating != null ? p.rating : 0},
+                  p_new=${p.newRating != null ? p.newRating : p.rating}">
+
+                    <div th:class="'ovr-badge ' + (${p_rating >= 90} ? 'ovr-90' : (${p_rating >= 80} ? 'ovr-80' : (${p_rating >= 70} ? 'ovr-70' : 'ovr-60')))"
+                         th:text="${p_rating}">
+                    </div>
+
+                    <span th:with="diff=${p_new - p_rating}"
+                          th:if="${p.newRating != null and p.rating != null and diff != 0}"
+                          th:class="'diff-tag ' + (${diff > 0} ? 'diff-plus' : 'diff-minus')"
+                          th:text="${diff > 0 ? '+' + diff : diff}">
+        </span>
+
+                    <span th:if="${p.newRating != null and p.rating != null and p.newRating - p.rating == 0}"
+                          class="diff-tag diff-zero">0</span>
+                </div>
+            </td>
+
+            <td class="salary-cell salary-col"
+                th:style="${p.option2526 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #e67e22;' :
+                           p.option2526 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                           p.option2526 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' : 'color: black;'}"
+                th:text="${p.contract2526 != null and p.contract2526 > 0 ? #numbers.formatDecimal(p.contract2526, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '-'}"></td>
+
+            <td class="salary-cell salary-col"
+                th:style="${p.option2627 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #e67e22;' :
+                           p.option2627 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                           p.option2627 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' : 'color: black;'}"
+                th:text="${p.contract2627 != null and p.contract2627 > 0 ? #numbers.formatDecimal(p.contract2627, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '-'}"></td>
+
+            <td class="salary-cell salary-col"
+                th:style="${p.option2728 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #e67e22;' :
+                           p.option2728 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                           p.option2728 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' : 'color: black;'}"
+                th:text="${p.contract2728 != null and p.contract2728 > 0 ? #numbers.formatDecimal(p.contract2728, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '-'}"></td>
+
+            <td class="salary-cell salary-col"
+                th:style="${p.option2829 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #e67e22;' :
+                           p.option2829 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                           p.option2829 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' : 'color: black;'}"
+                th:text="${p.contract2829 != null and p.contract2829 > 0 ? #numbers.formatDecimal(p.contract2829, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '-'}"></td>
+
+            <td class="salary-cell salary-col"
+                th:style="${p.option2930 == T(com.nba.nba_zone.ContractOption).TWOWAY ? 'color: #e67e22;' :
+                           p.option2930 == T(com.nba.nba_zone.ContractOption).TEAM ? 'color: #00A36C;' :
+                           p.option2930 == T(com.nba.nba_zone.ContractOption).PLAYER ? 'color: #8A2BE2;' : 'color: black;'}"
+                th:text="${p.contract2930 != null and p.contract2930 > 0 ? #numbers.formatDecimal(p.contract2930, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '-'}"></td>
+        </tr>
+        </tbody>
+        <tfoot class="footer-sum">
+        <tr>
+            <td colspan="5" class="text-end fw-bold">TOTAL TEAM SALARY:</td>
+            <td th:each="s : ${sums}" th:text="${s > 0 ? #numbers.formatDecimal(s, 0, 'WHITESPACE', 0, 'POINT') + ' $' : '0 $'}" class="salary-cell salary-col"></td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="summary-card mt-5">
+    <h5 class="fw-bold mb-4">NBA CBA THRESHOLDS & CAP ROOM</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered summary-table align-middle">
+            <thead>
+            <tr class="text-center">
+                <th class="text-start">Threshold Name</th>
+                <th>2025-26 Limit</th>
+                <th>Team Space / (Over)</th>
+                <th>2026-27 Limit</th>
+                <th>Team Space / (Over)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold ps-3">Salary Cap</td>
+                <td class="text-center">$154,647,000</td>
+                <td class="text-center" th:classappend="${154647000 - sums[0] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(154647000 - sums[0], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+                <td class="text-center">$166,000,000</td>
+                <td class="text-center" th:classappend="${166000000 - sums[1] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(166000000 - sums[1], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+            </tr>
+            <tr>
+                <td class="fw-bold ps-3 text-danger">Luxury Tax Threshold</td>
+                <td class="text-center">$188,331,000</td>
+                <td class="text-center" th:classappend="${188331000 - sums[0] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(188331000 - sums[0], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+                <td class="text-center">$201,000,000</td>
+                <td class="text-center" th:classappend="${201000000 - sums[1] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(201000000 - sums[1], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+            </tr>
+            <tr>
+                <td class="fw-bold ps-3">First Apron</td>
+                <td class="text-center">$195,945,000</td>
+                <td class="text-center" th:classappend="${195945000 - sums[0] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(195945000 - sums[0], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+                <td class="text-center">$210,330,000</td>
+                <td class="text-center" th:classappend="${210330000 - sums[1] >= 0 ? 'diff-pos' : 'diff-neg'}"
+                    th:text="${#numbers.formatDecimal(210330000 - sums[1], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+            </tr>
+            <tr class="table-dark">
+                <td class="fw-bold ps-3">Second Apron (Hard Cap)</td>
+                <td class="text-center">$207,824,000</td>
+                <td class="text-center text-white"
+                    th:text="${#numbers.formatDecimal(207824000 - sums[0], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+                <td class="text-center">$223,081,000</td>
+                <td class="text-center text-white"
+                    th:text="${#numbers.formatDecimal(223081000 - sums[1], 0, 'WHITESPACE', 0, 'POINT')} + ' $'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

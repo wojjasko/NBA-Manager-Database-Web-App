@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dodaj Zawodnika - NBA Zone</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .form-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h3 { color: #1d428a; border-bottom: 2px solid #1d428a; padding-bottom: 10px; margin-bottom: 20px; }
+        .salary-row { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .salary-row:last-child { border-bottom: none; }
+    </style>
+</head>
+<body class="container py-5">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>🏀 DODAJ NOWEGO ZAWODNIKA 🏀</h1>
+    <a th:href="@{/players}" class="btn btn-outline-secondary">Powrót do listy</a>
+</div>
+
+<form th:action="@{/save-player}" th:object="${player}" method="post">
+
+    <div class="form-section">
+        <h3>Dane podstawowe</h3>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Imię</label>
+                <input type="text" th:field="*{name}" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nazwisko</label>
+                <input type="text" th:field="*{surname}" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Klub</label>
+                <select th:field="*{team}" class="form-select">
+                    <option value="">-- Wybierz drużynę (Free Agent) --</option>
+                    <option th:each="t : ${allTeams}"
+                            th:value="${t.id}"
+                            th:text="${t.name}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Pozycja</label>
+                <input type="text" th:field="*{position}" class="form-control" placeholder="np. PG">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Druga pozycja</label>
+                <input type="text" th:field="*{secondaryPosition}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Rok urodzenia</label>
+                <input type="number" th:field="*{birthYear}" class="form-control" placeholder="np. 1995">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Rating</label>
+                <input type="number" th:field="*{rating}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Narodowość</label>
+                <input type="text" th:field="*{nationality}" class="form-control" placeholder="np. PL">
+            </div>
+            <div class="col-md-12 mt-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" th:field="*{newPlayer}" id="newPlayer">
+                    <label class="form-check-label" for="newPlayer">Nowy w drużynie</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" th:field="*{rookie}" id="rookie">
+                    <label class="form-check-label" for="rookie">Rookie (Debiutant)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Finanse i Kontrakt (5 Lat)</h3>
+
+        <div class="row mb-2 d-none d-md-flex">
+            <div class="col-md-6"><label class="form-label fw-bold">Kwota kontraktu ($)</label></div>
+            <div class="col-md-6"><label class="form-label fw-bold">Typ opcji / Status</label></div>
+        </div>
+
+        <div class="row g-3 salary-row align-items-end">
+            <div class="col-md-6">
+                <label class="form-label d-md-none">25/26 ($)</label>
+                <div class="input-group">
+                    <span class="input-group-text">25/26</span>
+                    <input type="number" step="0.01" th:field="*{contract2526}" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select th:field="*{option2526}" class="form-select">
+                    <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-3 salary-row align-items-end">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">26/27</span>
+                    <input type="number" step="0.01" th:field="*{contract2627}" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select th:field="*{option2627}" class="form-select">
+                    <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-3 salary-row align-items-end">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">27/28</span>
+                    <input type="number" step="0.01" th:field="*{contract2728}" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select th:field="*{option2728}" class="form-select">
+                    <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-3 salary-row align-items-end">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">28/29</span>
+                    <input type="number" step="0.01" th:field="*{contract2829}" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select th:field="*{option2829}" class="form-select">
+                    <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}"></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-3 salary-row align-items-end">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">29/30</span>
+                    <input type="number" step="0.01" th:field="*{contract2930}" class="form-control" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select th:field="*{option2930}" class="form-select">
+                    <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}"></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4 pb-5">
+        <button type="submit" class="btn btn-primary btn-lg px-5 shadow">Zapisz Zawodnika</button>
+    </div>
+</form>
+
+</body>
+</html>

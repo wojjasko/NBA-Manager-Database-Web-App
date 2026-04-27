@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>NBA Zone - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 1000px; /* Poszerzony sidebar na nazwy drużyn */
+            --panel-bg: #111827;
+            --gold: #fbbf24; --green: #22c55e; --blue: #3b82f6; --red: #ef4444;
+        }
+        body { background-color: #030712; color: #ffffff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+            zoom: 0.92; /* Optymalne dopasowanie do 1080p */
+        }
+
+        .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* SIDEBAR - TABELA */
+        .standings-sidebar {
+            background: var(--panel-bg);
+            border-right: 2px solid #374151;
+            padding: 15px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .mini-table { font-size: 0.85rem; margin-bottom: 10px; vertical-align: middle; }
+        .table-logo { width: 32px; height: 32px; object-fit: contain; margin-right: 8px; }
+        .team-cell { display: flex; align-items: center; text-align: left; font-weight: 500; }
+        .team-name-text {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;
+            font-size: 0.8rem; color: #e5e7eb;
+        }
+
+        .input-inline {
+            width: 40px; height: 28px; background: #000; border: 1px solid #4b5563;
+            color: white; text-align: center; border-radius: 4px; font-weight: bold; font-size: 0.75rem;
+        }
+        .input-bp { border-color: #6366f1; color: #818cf8; }
+
+        /* DRABINKA */
+        .bracket-content { padding: 10px; background: #030712; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .bracket-scroll { display: flex; align-items: center; gap: 25px; width: 100%; justify-content: space-evenly; }
+
+        .round { display: flex; flex-direction: column; justify-content: space-around; width: 130px; height: 820px; }
+        .round-title { font-family: 'Oswald'; font-size: 0.8rem; color: #6b7280; text-align: center; margin-bottom: 5px; border-bottom: 1px solid #374151; }
+
+        .matchup-box { background: rgba(31, 41, 55, 0.4); border-radius: 8px; border: 1px solid #374151; margin-bottom: 10px; padding: 6px 0; }
+
+        .border-west { border: 2px solid var(--red) !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+        .border-east { border: 2px solid var(--blue) !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+
+        .team-line { display: flex; flex-direction: column; align-items: center; padding: 4px; position: relative; }
+        .bracket-logo { width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+
+        .score-input-playoff {
+            width: 34px; height: 24px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold);
+            color: var(--gold); text-align: center; font-size: 0.8rem; font-weight: bold; border-radius: 3px; margin-top: 4px;
+        }
+
+        /* FINALS CENTER */
+        .finals-center { width: 240px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+
+        .finals-gold-box {
+            width: 100%; border: 3px solid var(--gold);
+            background: radial-gradient(circle, #1f2937 0%, #030712 100%);
+            border-radius: 15px; padding: 20px 10px; text-align: center;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+        }
+
+        /* KOLORY RANG */
+        .rank-1 { color: var(--gold) !important; border-left: 4px solid var(--gold); padding-left: 8px; font-weight: bold; }
+        .rank-top6 { color: var(--green) !important; border-left: 4px solid var(--green); padding-left: 8px; }
+        .rank-playin { color: var(--blue) !important; border-left: 4px solid var(--blue); padding-left: 8px; }
+        .rank-out { color: var(--red) !important; border-left: 4px solid var(--red); padding-left: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <aside class="standings-sidebar">
+        <h4 class="oswald text-warning mb-4 text-center">NBA STANDINGS 2026</h4>
+        <form th:action="@{/playoffs/update}" method="post">
+            <div class="row g-3">
+                <div class="col-6 text-center">
+                    <h6 class="oswald text-primary mb-2">EASTERN</h6>
+                    <table class="table table-dark table-borderless mini-table">
+                        <thead><tr><th>#</th><th>TEAM</th><th>W</th><th>L</th><th>BP</th></tr></thead>
+                        <tr th:each="t, iter : ${east}">
+                            <td th:text="${iter.count}"
+                                th:class="${iter.count == 1 ? 'rank-1' : (iter.count <= 6 ? 'rank-top6' : (iter.count <= 10 ? 'rank-playin' : 'rank-out'))}">
+                            </td>
+                            <td class="team-cell">
+                                <img th:src="${t.logoPath}" class="table-logo">
+                                <span class="team-name-text" th:text="${t.name}">Team</span>
+                            </td>
+                            <td><input type="number" th:name="'wins_' + ${t.id}" th:value="${t.wins}" class="input-inline"></td>
+                            <td><input type="number" th:name="'losses_' + ${t.id}" th:value="${t.losses}" class="input-inline"></td>
+                            <td><input type="number" th:name="'bp_' + ${t.id}" th:value="${t.bonusPoints}" class="input-inline input-bp"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-6 text-center">
+                    <h6 class="oswald text-danger mb-2">WESTERN</h6>
+                    <table class="table table-dark table-borderless mini-table">
+                        <thead><tr><th>#</th><th>TEAM</th><th>W</th><th>L</th><th>BP</th></tr></thead>
+                        <tr th:each="t, iter : ${west}">
+                            <td th:text="${iter.count}"
+                                th:class="${iter.count == 1 ? 'rank-1' : (iter.count <= 6 ? 'rank-top6' : (iter.count <= 10 ? 'rank-playin' : 'rank-out'))}">
+                            </td>
+                            <td class="team-cell">
+                                <img th:src="${t.logoPath}" class="table-logo">
+                                <span class="team-name-text" th:text="${t.name}">Team</span>
+                            </td>
+                            <td><input type="number" th:name="'wins_' + ${t.id}" th:value="${t.wins}" class="input-inline"></td>
+                            <td><input type="number" th:name="'losses_' + ${t.id}" th:value="${t.losses}" class="input-inline"></td>
+                            <td><input type="number" th:name="'bp_' + ${t.id}" th:value="${t.bonusPoints}" class="input-inline input-bp"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 oswald mt-3">AKTUALIZUJ TABELĘ I BILANS</button>
+        </form>
+    </aside>
+
+    <main class="bracket-content">
+        <h2 class="oswald mb-4" style="font-size: 2.2rem;">NBA PLAYOFFS 2026</h2>
+
+        <div class="bracket-scroll">
+            <div class="round">
+                <div class="round-title oswald">WEST R1</div>
+                <div class="matchup-box" th:each="p, mStat : ${ { {0,7}, {3,4}, {2,5}, {1,6} } }">
+                    <div class="team-line" th:each="idx, tStat : ${p}" th:id="'w-r1-m' + ${mStat.index} + '-t' + ${tStat.index}">
+                        <img th:src="${west.size() > idx ? west[idx].logoPath : ''}" class="bracket-logo">
+                        <input type="number" class="score-input-playoff" value="0" onchange="checkAdvance(this, 'w', 1)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="round">
+                <div class="round-title oswald">W. SEMIS</div>
+                <div class="matchup-box" th:each="i : ${#numbers.sequence(0,1)}">
+                    <div class="team-line" th:id="'w-r2-m' + ${i} + '-t0'"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'w', 2)"></div>
+                    <div class="team-line" th:id="'w-r2-m' + ${i} + '-t1'"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'w', 2)"></div>
+                </div>
+            </div>
+
+            <div class="finals-center">
+                <div class="round-title oswald w-100 text-danger" style="border-bottom-color: var(--red)">WEST FINALS</div>
+                <div class="matchup-box w-100 border-west">
+                    <div class="team-line" id="w-r3-m0-t0"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'w', 3)"></div>
+                    <div class="team-line" id="w-r3-m0-t1"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'w', 3)"></div>
+                </div>
+
+                <div class="finals-gold-box">
+                    <h6 class="oswald text-warning mb-3">THE FINALS</h6>
+                    <div class="d-flex justify-content-around align-items-center">
+                        <div id="final-w" class="text-center">
+                            <img src="" class="bracket-logo" style="display:none; width: 85px; height: 85px;">
+                            <input type="number" class="score-input-playoff" placeholder="0">
+                        </div>
+                        <div class="oswald text-white" style="font-size: 1.2rem;">VS</div>
+                        <div id="final-e" class="text-center">
+                            <img src="" class="bracket-logo" style="display:none; width: 85px; height: 85px;">
+                            <input type="number" class="score-input-playoff" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="round-title oswald w-100 text-primary" style="border-bottom-color: var(--blue)">EAST FINALS</div>
+                <div class="matchup-box w-100 border-east">
+                    <div class="team-line" id="e-r3-m0-t0"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'e', 3)"></div>
+                    <div class="team-line" id="e-r3-m0-t1"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'e', 3)"></div>
+                </div>
+            </div>
+
+            <div class="round">
+                <div class="round-title oswald">E. SEMIS</div>
+                <div class="matchup-box" th:each="i : ${#numbers.sequence(0,1)}">
+                    <div class="team-line" th:id="'e-r2-m' + ${i} + '-t0'"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'e', 2)"></div>
+                    <div class="team-line" th:id="'e-r2-m' + ${i} + '-t1'"><img src="" class="bracket-logo" style="display:none"><input type="number" class="score-input-playoff" onchange="checkAdvance(this, 'e', 2)"></div>
+                </div>
+            </div>
+
+            <div class="round">
+                <div class="round-title oswald">EAST R1</div>
+                <div class="matchup-box" th:each="p, mStat : ${ { {0,7}, {3,4}, {2,5}, {1,6} } }">
+                    <div class="team-line" th:each="idx, tStat : ${p}" th:id="'e-r1-m' + ${mStat.index} + '-t' + ${tStat.index}">
+                        <img th:src="${east.size() > idx ? east[idx].logoPath : ''}" class="bracket-logo">
+                        <input type="number" class="score-input-playoff" value="0" onchange="checkAdvance(this, 'e', 1)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div style="position:fixed; bottom:20px; right:20px;">
+    <a href="/teams" class="btn btn-secondary oswald px-4 shadow">POWRÓT DO MENU</a>
+</div>
+
+<script>
+    function checkAdvance(input, conf, round) {
+        if (parseInt(input.value) >= 4) {
+            const teamLine = input.parentElement;
+            const logoSrc = teamLine.querySelector('img').src;
+            const mIdx = parseInt(teamLine.id.split('-m')[1]);
+            const nextMatchIdx = Math.floor(mIdx / 2);
+            const nextTeamIdx = mIdx % 2;
+
+            let target;
+            if (round === 1) target = document.getElementById(`${conf}-r2-m${nextMatchIdx}-t${nextTeamIdx}`);
+            else if (round === 2) target = document.getElementById(`${conf}-r3-m0-t${mIdx}`);
+            else if (round === 3) target = document.getElementById(`final-${conf}`);
+
+            if (target) {
+                const targetImg = target.querySelector('img');
+                targetImg.src = logoSrc;
+                targetImg.style.display = 'block';
+            }
+        }
+    }
+</script>
+</body>
+</html>
