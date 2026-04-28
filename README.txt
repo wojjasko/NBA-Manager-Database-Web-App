@@ -39,6 +39,7 @@ Kompleksowa aplikacja Full-stack służąca do zarządzania bazą danych zawodni
 
 2. **Konfiguracja:**
    - W pliku `src/main/resources/application.properties` zmień hasło do bazy danych (`spring.datasource.password`) na Twoje lokalne.
+   - Upewnij się, że w tym samym pliku masz linię `spring.datasource.url=jdbc:postgresql://localhost:5432/NBA Stats`.
 
 3. **Uruchomienie:**
    - Otwórz projekt w IntelliJ i uruchom klasę `NbaZoneApplication`.
