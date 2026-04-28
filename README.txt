@@ -32,7 +32,14 @@ Kompleksowa aplikacja Full-stack służąca do zarządzania bazą danych zawodni
 * **Build Tool:** Maven
 
 ## 🚀 Instalacja i Uruchomienie
-1. Sklonuj repozytorium: `git clone https://github.com/TwojUser/nba-zone.git`
-2. Skonfiguruj dostęp do bazy MySQL w `application.properties`.
-3. Uruchom aplikację: `./mvnw spring-boot:run`
-4. Otwórz przeglądarkę na: `http://localhost:8080`
+1. **Baza danych:**
+   - Stwórz bazę danych w PostgreSQL o nazwie `NBA Stats`.
+   - Zaimportuj strukturę i dane z pliku `nba_setup.sql` (dostępny w głównym folderze).
+   - Możesz to zrobić w pgAdmin lub komendą: `psql -U postgres -d "NBA Stats" -f nba_setup.sql`
+
+2. **Konfiguracja:**
+   - W pliku `src/main/resources/application.properties` zmień hasło do bazy danych (`spring.datasource.password`) na Twoje lokalne.
+
+3. **Uruchomienie:**
+   - Otwórz projekt w IntelliJ i uruchom klasę `NbaZoneApplication`.
+   - Aplikacja będzie dostępna pod adresem: `http://localhost:8080`
