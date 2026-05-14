@@ -44,3 +44,5 @@ Kompleksowa aplikacja Full-stack służąca do zarządzania bazą danych zawodni
 3. **Uruchomienie:**
    - Otwórz projekt w IntelliJ i uruchom klasę `NbaZoneApplication`.
    - Aplikacja będzie dostępna pod adresem: `http://localhost:8080`
+
+Przedstawienie wszystkich funkcjonalności mojej strony na filmie: https://youtu.be/0Wx8vJTcwAQ
